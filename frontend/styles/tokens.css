@@ -1,0 +1,32 @@
+:root {
+  --color-bg: #f4f1ea;
+  --color-surface: #fffdf8;
+  --color-surface-muted: #ece7dc;
+  --color-text: #1b241c;
+  --color-text-muted: #4d5a4f;
+  --color-border: #c9c2b2;
+  --color-primary: #1c5c3a;
+  --color-primary-hover: #16482e;
+  --color-on-primary: #ffffff;
+  --color-accent: #0b4f8a;
+  --color-danger: #8a1f1f;
+  --color-danger-bg: #f8e8e8;
+  --color-success: #0d5c38;
+  --color-focus: #0b4f8a;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --radius: 8px;
+  --font: "Segoe UI", system-ui, sans-serif;
+  --shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

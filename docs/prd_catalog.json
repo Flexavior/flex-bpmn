@@ -1,0 +1,37 @@
+[
+  {
+    "id": "lms_student_enrollment",
+    "title": "Student course enrollment",
+    "roles": ["student", "admin"],
+    "prd": "P1",
+    "file": "lms_student_enrollment.json"
+  },
+  {
+    "id": "lms_exam_authoring",
+    "title": "Teacher exam authoring and publish",
+    "roles": ["teacher", "admin"],
+    "prd": "P2",
+    "file": "lms_exam_authoring.json"
+  },
+  {
+    "id": "lms_exam_attempt",
+    "title": "Student exam attempt and grading",
+    "roles": ["student", "teacher"],
+    "prd": "P3",
+    "file": "lms_exam_attempt.json"
+  },
+  {
+    "id": "lms_admin_provisioning",
+    "title": "Admin user provisioning",
+    "roles": ["admin"],
+    "prd": "P4",
+    "file": "lms_admin_provisioning.json"
+  },
+  {
+    "id": "lms_exam_appeal",
+    "title": "Exam incident and appeal",
+    "roles": ["student", "teacher", "admin"],
+    "prd": "P5",
+    "file": "lms_exam_appeal.json"
+  }
+]

@@ -1,0 +1,173 @@
+<?xml version='1.0' encoding='utf-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Definitions_lms_admin_provisioning" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="lms_admin_provisioning" name="Admin User Provisioning" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_lms_admin_provisioning">
+      <bpmn:lane id="admin" name="Admin Staff">
+        <bpmn:flowNodeRef>start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>create_account</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>role_gw</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="system" name="System">
+        <bpmn:flowNodeRef>attach_program</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>attach_department</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>attach_permissions</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>send_invite</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="general" name="General">
+        <bpmn:flowNodeRef>activate_account</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="start" name="Start">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="create_account" name="Staff create account">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+        <zeebe:assignmentDefinition candidateGroups="admin"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="role_gw" name="Role?" default="Flow_5">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="attach_program" name="Attach student program">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_admin_provisioning.attach_program"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="attach_department" name="Attach teacher department">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_admin_provisioning.attach_department"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="attach_permissions" name="Attach staff permissions">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_admin_provisioning.attach_permissions"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="send_invite" name="Send activation invite">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_admin_provisioning.send_invite"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="activate_account" name="User activates account">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="end" name="Activated">
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="start" targetRef="create_account"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="create_account" targetRef="role_gw"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="role_gw" targetRef="attach_program">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= role = "student"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="role_gw" targetRef="attach_department">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= role = "teacher"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="role_gw" targetRef="attach_permissions"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="attach_program" targetRef="send_invite"/>
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="attach_department" targetRef="send_invite"/>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="attach_permissions" targetRef="send_invite"/>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="send_invite" targetRef="activate_account"/>
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="activate_account" targetRef="end"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_lms_admin_provisioning">
+    <bpmndi:BPMNPlane id="BPMNPlane_lms_admin_provisioning" bpmnElement="lms_admin_provisioning">
+      <bpmndi:BPMNShape id="admin_di" bpmnElement="admin" isHorizontal="true">
+        <dc:Bounds x="60" y="80" width="1740" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="system_di" bpmnElement="system" isHorizontal="true">
+        <dc:Bounds x="60" y="240" width="1740" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="general_di" bpmnElement="general" isHorizontal="true">
+        <dc:Bounds x="60" y="400" width="1740" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start">
+        <dc:Bounds x="180" y="142" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="create_account_di" bpmnElement="create_account">
+        <dc:Bounds x="400" y="120" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="role_gw_di" bpmnElement="role_gw">
+        <dc:Bounds x="620" y="135" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="attach_program_di" bpmnElement="attach_program">
+        <dc:Bounds x="840" y="280" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="attach_department_di" bpmnElement="attach_department">
+        <dc:Bounds x="840" y="280" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="attach_permissions_di" bpmnElement="attach_permissions">
+        <dc:Bounds x="840" y="280" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="send_invite_di" bpmnElement="send_invite">
+        <dc:Bounds x="1060" y="280" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="activate_account_di" bpmnElement="activate_account">
+        <dc:Bounds x="1280" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end">
+        <dc:Bounds x="1500" y="462" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="216" y="160"/>
+        <di:waypoint x="400" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="500" y="160"/>
+        <di:waypoint x="620" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="670" y="160"/>
+        <di:waypoint x="840" y="320"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="670" y="160"/>
+        <di:waypoint x="840" y="320"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="670" y="160"/>
+        <di:waypoint x="840" y="320"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="940" y="320"/>
+        <di:waypoint x="1060" y="320"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="940" y="320"/>
+        <di:waypoint x="1060" y="320"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="940" y="320"/>
+        <di:waypoint x="1060" y="320"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="1160" y="320"/>
+        <di:waypoint x="1280" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="1380" y="480"/>
+        <di:waypoint x="1500" y="480"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

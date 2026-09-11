@@ -1,0 +1,76 @@
+{
+  "process": {
+    "id": "expense_approval",
+    "name": "Expense Approval"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "nodeType": "startEvent",
+      "name": "Start"
+    },
+    {
+      "id": "submit",
+      "nodeType": "userTask",
+      "name": "Submit Expense Report"
+    },
+    {
+      "id": "review",
+      "nodeType": "userTask",
+      "name": "Review Report"
+    },
+    {
+      "id": "approval_gateway",
+      "nodeType": "exclusiveGateway",
+      "name": "Amount Check"
+    },
+    {
+      "id": "manager_approve",
+      "nodeType": "userTask",
+      "name": "Manager Approval"
+    },
+    {
+      "id": "reimburse",
+      "nodeType": "serviceTask",
+      "name": "Reimburse Employee"
+    },
+    {
+      "id": "end",
+      "nodeType": "endEvent",
+      "name": "End"
+    }
+  ],
+  "flows": [
+    {
+      "from": "start",
+      "to": "submit"
+    },
+    {
+      "from": "submit",
+      "to": "review"
+    },
+    {
+      "from": "review",
+      "to": "approval_gateway"
+    },
+    {
+      "from": "approval_gateway",
+      "to": "manager_approve",
+      "condition": "amount > 500",
+      "default": false
+    },
+    {
+      "from": "approval_gateway",
+      "to": "reimburse",
+      "default": true
+    },
+    {
+      "from": "manager_approve",
+      "to": "reimburse"
+    },
+    {
+      "from": "reimburse",
+      "to": "end"
+    }
+  ]
+}

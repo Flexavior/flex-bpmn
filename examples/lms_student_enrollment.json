@@ -1,0 +1,38 @@
+{
+  "process": {
+    "id": "lms_student_enrollment",
+    "name": "Student Course Enrollment"
+  },
+  "nodes": [
+    { "id": "start", "nodeType": "startEvent", "name": "Start" },
+    { "id": "submit_request", "nodeType": "userTask", "name": "Student submits enrollment" },
+    { "id": "check_eligibility", "nodeType": "serviceTask", "name": "Check eligibility" },
+    { "id": "eligible_gw", "nodeType": "exclusiveGateway", "name": "Eligible?" },
+    { "id": "notify_rejected", "nodeType": "serviceTask", "name": "Notify ineligible student" },
+    { "id": "end_rejected", "nodeType": "endEvent", "name": "Rejected" },
+    { "id": "fork_ops", "nodeType": "parallelGateway", "name": "Reserve and bill" },
+    { "id": "reserve_seat", "nodeType": "serviceTask", "name": "Reserve seat" },
+    { "id": "create_invoice", "nodeType": "serviceTask", "name": "Create invoice" },
+    { "id": "join_ops", "nodeType": "parallelGateway", "name": "Join operations" },
+    { "id": "staff_confirm", "nodeType": "userTask", "name": "Staff confirm payment and seat" },
+    { "id": "write_enrollment", "nodeType": "serviceTask", "name": "Write enrollment record" },
+    { "id": "notify_enrolled", "nodeType": "serviceTask", "name": "Notify enrolled student" },
+    { "id": "end_enrolled", "nodeType": "endEvent", "name": "Enrolled" }
+  ],
+  "flows": [
+    { "from": "start", "to": "submit_request" },
+    { "from": "submit_request", "to": "check_eligibility" },
+    { "from": "check_eligibility", "to": "eligible_gw" },
+    { "from": "eligible_gw", "to": "notify_rejected", "condition": "eligible = false" },
+    { "from": "notify_rejected", "to": "end_rejected" },
+    { "from": "eligible_gw", "to": "fork_ops", "default": true },
+    { "from": "fork_ops", "to": "reserve_seat" },
+    { "from": "fork_ops", "to": "create_invoice" },
+    { "from": "reserve_seat", "to": "join_ops" },
+    { "from": "create_invoice", "to": "join_ops" },
+    { "from": "join_ops", "to": "staff_confirm" },
+    { "from": "staff_confirm", "to": "write_enrollment" },
+    { "from": "write_enrollment", "to": "notify_enrolled" },
+    { "from": "notify_enrolled", "to": "end_enrolled" }
+  ]
+}

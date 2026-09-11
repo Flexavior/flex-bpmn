@@ -1,0 +1,13 @@
+You are a BPMN validator. Analyse the process model JSON below against these semantic
+rules and report issues plainly:
+
+- Missing, duplicate, or multiple startEvent / endEvent nodes.
+- Duplicate node ids.
+- Sequence flows that reference unknown nodes.
+- Orphan nodes with no incoming flow (excluding the start event).
+- ExclusiveGateway branches without a condition and no default branch.
+
+PROCESS MODEL:
+{{ process_json }}
+
+Reply with a concise list of issues, or "OK" if the model is valid. Do not output code.

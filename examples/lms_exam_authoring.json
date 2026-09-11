@@ -1,0 +1,31 @@
+{
+  "process": {
+    "id": "lms_exam_authoring",
+    "name": "Teacher Exam Authoring and Publish"
+  },
+  "nodes": [
+    { "id": "start", "nodeType": "startEvent", "name": "Start" },
+    { "id": "draft_exam", "nodeType": "userTask", "name": "Teacher drafts exam" },
+    { "id": "add_questions", "nodeType": "userTask", "name": "Teacher adds questions" },
+    { "id": "review_required_gw", "nodeType": "exclusiveGateway", "name": "Review required?" },
+    { "id": "staff_review", "nodeType": "userTask", "name": "Staff review exam" },
+    { "id": "review_result_gw", "nodeType": "exclusiveGateway", "name": "Approved?" },
+    { "id": "return_to_teacher", "nodeType": "serviceTask", "name": "Return draft to teacher" },
+    { "id": "schedule_window", "nodeType": "serviceTask", "name": "Schedule exam window" },
+    { "id": "publish_exam", "nodeType": "serviceTask", "name": "Publish exam to cohort" },
+    { "id": "end_published", "nodeType": "endEvent", "name": "Published" }
+  ],
+  "flows": [
+    { "from": "start", "to": "draft_exam" },
+    { "from": "draft_exam", "to": "add_questions" },
+    { "from": "add_questions", "to": "review_required_gw" },
+    { "from": "review_required_gw", "to": "staff_review", "condition": "reviewRequired = true" },
+    { "from": "review_required_gw", "to": "schedule_window", "default": true },
+    { "from": "staff_review", "to": "review_result_gw" },
+    { "from": "review_result_gw", "to": "return_to_teacher", "condition": "approved = false" },
+    { "from": "review_result_gw", "to": "schedule_window", "default": true },
+    { "from": "return_to_teacher", "to": "draft_exam" },
+    { "from": "schedule_window", "to": "publish_exam" },
+    { "from": "publish_exam", "to": "end_published" }
+  ]
+}

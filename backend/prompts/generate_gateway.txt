@@ -1,0 +1,13 @@
+Convert the following natural-language description into a BPMN exclusiveGateway-based
+decision model as JSON:
+
+RULES:
+- Exactly one startEvent and one endEvent.
+- Capture every decision as an exclusiveGateway with one outgoing flow per branch.
+- Each branch flow has a "condition" expression, except the default branch marked
+  "default": true.
+
+DESCRIPTION:
+"{{ user_input }}"
+
+Return ONLY the JSON object using the standard process model schema.

@@ -1,0 +1,22 @@
+The previous JSON process model was rejected. Return ONLY a corrected JSON object
+that follows the same schema. Do not add commentary.
+
+ORIGINAL REQUEST:
+{{ user_input }}
+
+VALIDATOR / PARSE ERROR:
+{{ error }}
+
+PREVIOUS MODEL OUTPUT:
+{{ raw }}
+
+RULES:
+- Exactly one startEvent and at least one endEvent.
+- Every non-start node needs an incoming flow; every non-end node needs an outgoing flow.
+- Every node must have a "lane" referencing a lane id in "lanes".
+- Derive swimlanes from actors in the user's process (any domain: candidate, employer, regulator, trainer, etc.).
+- Include swimlanes (lanes array) — always include a system lane for serviceTask steps.
+- Exclusive gateway branches need a condition or one default:true branch.
+- Parallel gateway flows must not have conditions.
+- Node and process ids: lowercase snake_case, letters first.
+- FEEL conditions use single = (never ==).

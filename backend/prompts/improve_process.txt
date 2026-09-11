@@ -1,0 +1,11 @@
+Improve the following BPMN process model. Suggest concrete additions such as:
+- Adding an approval / review step where it is missing.
+- Introducing an exclusiveGateway for a decision that is currently implicit.
+- Splitting independent steps into parallel branches with a parallelGateway.
+- Adding a serviceTask for any step that would be automated.
+
+Return the updated process model as JSON using the SAME schema as the input, plus a
+short list of the changes you made as a sibling "changes" array.
+
+PROCESS TO IMPROVE:
+{{ process_json }}

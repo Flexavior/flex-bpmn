@@ -1,0 +1,7 @@
+You are a BPMN-to-JSON converter. Given the BPMN XML below, output the standard process
+model JSON schema (process / nodes / flows). Preserve node ids and structure.
+
+BPMN XML:
+{{ bpmn_xml }}
+
+Return ONLY the JSON object.

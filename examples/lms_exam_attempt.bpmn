@@ -1,0 +1,238 @@
+<?xml version='1.0' encoding='utf-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Definitions_lms_exam_attempt" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="lms_exam_attempt" name="Student Exam Attempt and Grading" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_lms_exam_attempt">
+      <bpmn:lane id="student" name="Student">
+        <bpmn:flowNodeRef>start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>start_session</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>submit_answers</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>grade_fork</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="teacher" name="Teacher">
+        <bpmn:flowNodeRef>teacher_grade</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>release_results</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>pass_gw</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="system" name="System">
+        <bpmn:flowNodeRef>lock_session</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>auto_grade</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>grade_join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>notify_pass</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>notify_fail</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>end_pass</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>end_fail</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="start" name="Start">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="start_session" name="Student starts exam session">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+        <zeebe:assignmentDefinition candidateGroups="student"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="lock_session" name="Lock exam session">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_exam_attempt.lock_session"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="submit_answers" name="Student submits answers">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+        <zeebe:assignmentDefinition candidateGroups="student"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:parallelGateway id="grade_fork" name="Split grading">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="auto_grade" name="Auto-grade objective items">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_exam_attempt.auto_grade"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="teacher_grade" name="Teacher grades constructed response">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+        <zeebe:assignmentDefinition candidateGroups="teacher"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:parallelGateway id="grade_join" name="Join grading">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:userTask id="release_results" name="Teacher releases results">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+        <zeebe:assignmentDefinition candidateGroups="teacher"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="pass_gw" name="Passed?" default="Flow_12">
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="notify_pass" name="Notify pass">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_exam_attempt.notify_pass"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="notify_fail" name="Notify fail">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_exam_attempt.notify_fail"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="end_pass" name="Passed">
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="end_fail" name="Failed">
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="start" targetRef="start_session"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="start_session" targetRef="lock_session"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="lock_session" targetRef="submit_answers"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="submit_answers" targetRef="grade_fork"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="grade_fork" targetRef="auto_grade"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="grade_fork" targetRef="teacher_grade"/>
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="auto_grade" targetRef="grade_join"/>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="teacher_grade" targetRef="grade_join"/>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="grade_join" targetRef="release_results"/>
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="release_results" targetRef="pass_gw"/>
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="pass_gw" targetRef="notify_pass">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= passed = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="pass_gw" targetRef="notify_fail"/>
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="notify_pass" targetRef="end_pass"/>
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="notify_fail" targetRef="end_fail"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_lms_exam_attempt">
+    <bpmndi:BPMNPlane id="BPMNPlane_lms_exam_attempt" bpmnElement="lms_exam_attempt">
+      <bpmndi:BPMNShape id="student_di" bpmnElement="student" isHorizontal="true">
+        <dc:Bounds x="60" y="80" width="2620" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="teacher_di" bpmnElement="teacher" isHorizontal="true">
+        <dc:Bounds x="60" y="240" width="2620" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="system_di" bpmnElement="system" isHorizontal="true">
+        <dc:Bounds x="60" y="400" width="2620" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start">
+        <dc:Bounds x="180" y="142" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_session_di" bpmnElement="start_session">
+        <dc:Bounds x="400" y="120" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="lock_session_di" bpmnElement="lock_session">
+        <dc:Bounds x="620" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="submit_answers_di" bpmnElement="submit_answers">
+        <dc:Bounds x="840" y="120" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="grade_fork_di" bpmnElement="grade_fork">
+        <dc:Bounds x="1060" y="135" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="auto_grade_di" bpmnElement="auto_grade">
+        <dc:Bounds x="1280" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="teacher_grade_di" bpmnElement="teacher_grade">
+        <dc:Bounds x="1280" y="280" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="grade_join_di" bpmnElement="grade_join">
+        <dc:Bounds x="1500" y="455" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="release_results_di" bpmnElement="release_results">
+        <dc:Bounds x="1720" y="280" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="pass_gw_di" bpmnElement="pass_gw">
+        <dc:Bounds x="1940" y="295" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="notify_pass_di" bpmnElement="notify_pass">
+        <dc:Bounds x="2160" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="notify_fail_di" bpmnElement="notify_fail">
+        <dc:Bounds x="2160" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_pass_di" bpmnElement="end_pass">
+        <dc:Bounds x="2380" y="462" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_fail_di" bpmnElement="end_fail">
+        <dc:Bounds x="2380" y="462" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="216" y="160"/>
+        <di:waypoint x="400" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="500" y="160"/>
+        <di:waypoint x="620" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="720" y="480"/>
+        <di:waypoint x="840" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="940" y="160"/>
+        <di:waypoint x="1060" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="1110" y="160"/>
+        <di:waypoint x="1280" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="1110" y="160"/>
+        <di:waypoint x="1280" y="320"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="1380" y="480"/>
+        <di:waypoint x="1500" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="1380" y="320"/>
+        <di:waypoint x="1500" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="1550" y="480"/>
+        <di:waypoint x="1720" y="320"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="1820" y="320"/>
+        <di:waypoint x="1940" y="320"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="1990" y="320"/>
+        <di:waypoint x="2160" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12">
+        <di:waypoint x="1990" y="320"/>
+        <di:waypoint x="2160" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13">
+        <di:waypoint x="2260" y="480"/>
+        <di:waypoint x="2380" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14_di" bpmnElement="Flow_14">
+        <di:waypoint x="2260" y="480"/>
+        <di:waypoint x="2380" y="480"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

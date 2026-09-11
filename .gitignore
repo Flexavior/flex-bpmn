@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Secrets — never commit real keys
+.env
+backend/.env
+frontend/.env
+*.pem
+*.key
+
+# Node / Vite
+frontend/node_modules/
+frontend/dist/
+
+# Runtime-generated BPMN/JSON (keep folder)
+backend/app/generated/*
+!backend/app/generated/.gitkeep
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+
+# Docker / local overrides
+docker-compose.override.yml

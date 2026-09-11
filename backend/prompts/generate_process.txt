@@ -1,0 +1,47 @@
+Convert the following business process description into a structured BPMN process model
+represented as JSON.
+
+REQUIRED JSON SCHEMA:
+{
+  "process": {
+    "id": "<lowercase_snake_case_id>",
+    "name": "<Human Readable Process Name>"
+  },
+  "lanes": [
+    { "id": "<lane_id>", "name": "<Lane label>", "actors": ["<actor_role>"] }
+  ],
+  "nodes": [
+    { "id": "<unique_id>", "nodeType": "startEvent", "name": "Start", "lane": "<lane_id>" },
+    { "id": "<unique_id>", "nodeType": "userTask", "name": "<task label>", "lane": "<lane_id>" },
+    { "id": "<unique_id>", "nodeType": "serviceTask", "name": "<task label>", "lane": "system" },
+    { "id": "<unique_id>", "nodeType": "exclusiveGateway", "name": "Approved?", "lane": "<lane_id>" },
+    { "id": "<unique_id>", "nodeType": "endEvent", "name": "End", "lane": "<lane_id>" }
+  ],
+  "flows": [
+    { "from": "<source_node_id>", "to": "<target_node_id>" },
+    { "from": "<gateway_id>", "to": "<target_node_id>", "condition": "<feel expression>", "default": false }
+  ]
+}
+
+RULES:
+- Include EXACTLY ONE startEvent and AT LEAST ONE endEvent.
+- Every node id must be unique lowercase snake_case starting with a letter.
+- Every non-start node must have an incoming flow. Every non-end node must have an outgoing flow.
+- **Swimlanes (required):** derive lanes from the actors in the user's description — NOT a fixed list.
+  Examples by domain:
+  - LMS: student, teacher, admin, system
+  - Hiring: candidate, employer, hr, system
+  - Compliance: employer, regulator, system
+  - Skills training: trainee, trainer, employer, regulator, system
+  Every node MUST include "lane" referencing a lane id you define in "lanes".
+  Put userTask in the lane of whoever performs the step. Put serviceTask in system.
+- Use userTask for human steps. Use serviceTask for automated/system steps.
+- Exclusive gateway: one condition per branch, except at most one "default": true.
+- Conditions are Camunda FEEL: use single = for equality (never ==), e.g. "amount > 500" or "decision = \"approved\"".
+- Parallel gateway fork and a matching join. Do not put conditions on parallel flows.
+- name values should be concise, action-oriented labels.
+
+PROCESS TO MODEL:
+"{{ user_input }}"
+
+Return ONLY the JSON object.

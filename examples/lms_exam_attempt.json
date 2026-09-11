@@ -1,0 +1,38 @@
+{
+  "process": {
+    "id": "lms_exam_attempt",
+    "name": "Student Exam Attempt and Grading"
+  },
+  "nodes": [
+    { "id": "start", "nodeType": "startEvent", "name": "Start" },
+    { "id": "start_session", "nodeType": "userTask", "name": "Student starts exam session" },
+    { "id": "lock_session", "nodeType": "serviceTask", "name": "Lock exam session" },
+    { "id": "submit_answers", "nodeType": "userTask", "name": "Student submits answers" },
+    { "id": "grade_fork", "nodeType": "parallelGateway", "name": "Split grading" },
+    { "id": "auto_grade", "nodeType": "serviceTask", "name": "Auto-grade objective items" },
+    { "id": "teacher_grade", "nodeType": "userTask", "name": "Teacher grades constructed response" },
+    { "id": "grade_join", "nodeType": "parallelGateway", "name": "Join grading" },
+    { "id": "release_results", "nodeType": "userTask", "name": "Teacher releases results" },
+    { "id": "pass_gw", "nodeType": "exclusiveGateway", "name": "Passed?" },
+    { "id": "notify_pass", "nodeType": "serviceTask", "name": "Notify pass" },
+    { "id": "notify_fail", "nodeType": "serviceTask", "name": "Notify fail" },
+    { "id": "end_pass", "nodeType": "endEvent", "name": "Passed" },
+    { "id": "end_fail", "nodeType": "endEvent", "name": "Failed" }
+  ],
+  "flows": [
+    { "from": "start", "to": "start_session" },
+    { "from": "start_session", "to": "lock_session" },
+    { "from": "lock_session", "to": "submit_answers" },
+    { "from": "submit_answers", "to": "grade_fork" },
+    { "from": "grade_fork", "to": "auto_grade" },
+    { "from": "grade_fork", "to": "teacher_grade" },
+    { "from": "auto_grade", "to": "grade_join" },
+    { "from": "teacher_grade", "to": "grade_join" },
+    { "from": "grade_join", "to": "release_results" },
+    { "from": "release_results", "to": "pass_gw" },
+    { "from": "pass_gw", "to": "notify_pass", "condition": "passed = true" },
+    { "from": "pass_gw", "to": "notify_fail", "default": true },
+    { "from": "notify_pass", "to": "end_pass" },
+    { "from": "notify_fail", "to": "end_fail" }
+  ]
+}

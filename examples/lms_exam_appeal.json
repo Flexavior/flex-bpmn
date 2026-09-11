@@ -1,0 +1,29 @@
+{
+  "process": {
+    "id": "lms_exam_appeal",
+    "name": "Exam Incident and Appeal"
+  },
+  "nodes": [
+    { "id": "start", "nodeType": "startEvent", "name": "Start" },
+    { "id": "file_appeal", "nodeType": "userTask", "name": "Student files appeal" },
+    { "id": "staff_triage", "nodeType": "userTask", "name": "Staff triage appeal" },
+    { "id": "valid_gw", "nodeType": "exclusiveGateway", "name": "Valid appeal?" },
+    { "id": "reject_appeal", "nodeType": "serviceTask", "name": "Reject invalid appeal" },
+    { "id": "end_rejected", "nodeType": "endEvent", "name": "Rejected" },
+    { "id": "teacher_regrade", "nodeType": "userTask", "name": "Teacher regrades" },
+    { "id": "record_outcome", "nodeType": "userTask", "name": "Staff record outcome" },
+    { "id": "notify_student", "nodeType": "serviceTask", "name": "Notify student" },
+    { "id": "end_resolved", "nodeType": "endEvent", "name": "Resolved" }
+  ],
+  "flows": [
+    { "from": "start", "to": "file_appeal" },
+    { "from": "file_appeal", "to": "staff_triage" },
+    { "from": "staff_triage", "to": "valid_gw" },
+    { "from": "valid_gw", "to": "reject_appeal", "condition": "valid = false" },
+    { "from": "valid_gw", "to": "teacher_regrade", "default": true },
+    { "from": "reject_appeal", "to": "end_rejected" },
+    { "from": "teacher_regrade", "to": "record_outcome" },
+    { "from": "record_outcome", "to": "notify_student" },
+    { "from": "notify_student", "to": "end_resolved" }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "process": {
+    "id": "employee_onboarding",
+    "name": "Employee Onboarding"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "nodeType": "startEvent",
+      "name": "Start"
+    },
+    {
+      "id": "verify",
+      "nodeType": "userTask",
+      "name": "Verify Employee"
+    },
+    {
+      "id": "approve",
+      "nodeType": "userTask",
+      "name": "Manager Approval"
+    },
+    {
+      "id": "create_account",
+      "nodeType": "serviceTask",
+      "name": "Create Account"
+    },
+    {
+      "id": "end",
+      "nodeType": "endEvent",
+      "name": "End"
+    }
+  ],
+  "flows": [
+    {
+      "from": "start",
+      "to": "verify"
+    },
+    {
+      "from": "verify",
+      "to": "approve"
+    },
+    {
+      "from": "approve",
+      "to": "create_account"
+    },
+    {
+      "from": "create_account",
+      "to": "end"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "process": {
+    "id": "lms_admin_provisioning",
+    "name": "Admin User Provisioning"
+  },
+  "nodes": [
+    { "id": "start", "nodeType": "startEvent", "name": "Start" },
+    { "id": "create_account", "nodeType": "userTask", "name": "Staff create account" },
+    { "id": "role_gw", "nodeType": "exclusiveGateway", "name": "Role?" },
+    { "id": "attach_program", "nodeType": "serviceTask", "name": "Attach student program" },
+    { "id": "attach_department", "nodeType": "serviceTask", "name": "Attach teacher department" },
+    { "id": "attach_permissions", "nodeType": "serviceTask", "name": "Attach staff permissions" },
+    { "id": "send_invite", "nodeType": "serviceTask", "name": "Send activation invite" },
+    { "id": "activate_account", "nodeType": "userTask", "name": "User activates account" },
+    { "id": "end", "nodeType": "endEvent", "name": "Activated" }
+  ],
+  "flows": [
+    { "from": "start", "to": "create_account" },
+    { "from": "create_account", "to": "role_gw" },
+    { "from": "role_gw", "to": "attach_program", "condition": "role = \"student\"" },
+    { "from": "role_gw", "to": "attach_department", "condition": "role = \"teacher\"" },
+    { "from": "role_gw", "to": "attach_permissions", "default": true },
+    { "from": "attach_program", "to": "send_invite" },
+    { "from": "attach_department", "to": "send_invite" },
+    { "from": "attach_permissions", "to": "send_invite" },
+    { "from": "send_invite", "to": "activate_account" },
+    { "from": "activate_account", "to": "end" }
+  ]
+}

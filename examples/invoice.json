@@ -1,0 +1,82 @@
+{
+  "process": {
+    "id": "invoice_processing",
+    "name": "Invoice Processing"
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "nodeType": "startEvent",
+      "name": "Start"
+    },
+    {
+      "id": "receive",
+      "nodeType": "userTask",
+      "name": "Receive Invoice"
+    },
+    {
+      "id": "validate",
+      "nodeType": "serviceTask",
+      "name": "Validate Invoice"
+    },
+    {
+      "id": "fork",
+      "nodeType": "parallelGateway",
+      "name": "Process in parallel"
+    },
+    {
+      "id": "pay",
+      "nodeType": "serviceTask",
+      "name": "Schedule Payment"
+    },
+    {
+      "id": "archive",
+      "nodeType": "serviceTask",
+      "name": "Archive Invoice"
+    },
+    {
+      "id": "join",
+      "nodeType": "parallelGateway",
+      "name": "Join"
+    },
+    {
+      "id": "end",
+      "nodeType": "endEvent",
+      "name": "End"
+    }
+  ],
+  "flows": [
+    {
+      "from": "start",
+      "to": "receive"
+    },
+    {
+      "from": "receive",
+      "to": "validate"
+    },
+    {
+      "from": "validate",
+      "to": "fork"
+    },
+    {
+      "from": "fork",
+      "to": "pay"
+    },
+    {
+      "from": "fork",
+      "to": "archive"
+    },
+    {
+      "from": "pay",
+      "to": "join"
+    },
+    {
+      "from": "archive",
+      "to": "join"
+    },
+    {
+      "from": "join",
+      "to": "end"
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+<?xml version='1.0' encoding='utf-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Definitions_lms_exam_authoring" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="lms_exam_authoring" name="Teacher Exam Authoring and Publish" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_lms_exam_authoring">
+      <bpmn:lane id="teacher" name="Teacher">
+        <bpmn:flowNodeRef>start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>draft_exam</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>add_questions</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>review_required_gw</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="admin" name="Admin Staff">
+        <bpmn:flowNodeRef>staff_review</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>review_result_gw</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="system" name="System">
+        <bpmn:flowNodeRef>return_to_teacher</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>schedule_window</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>publish_exam</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>end_published</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="start" name="Start">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="draft_exam" name="Teacher drafts exam">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+        <zeebe:assignmentDefinition candidateGroups="teacher"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="add_questions" name="Teacher adds questions">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+        <zeebe:assignmentDefinition candidateGroups="teacher"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="review_required_gw" name="Review required?" default="Flow_5">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="staff_review" name="Staff review exam">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+        <zeebe:assignmentDefinition candidateGroups="admin"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="review_result_gw" name="Approved?" default="Flow_8">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="return_to_teacher" name="Return draft to teacher">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_exam_authoring.return_to_teacher"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="schedule_window" name="Schedule exam window">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_exam_authoring.schedule_window"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="publish_exam" name="Publish exam to cohort">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_exam_authoring.publish_exam"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="end_published" name="Published">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="start" targetRef="draft_exam"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="draft_exam" targetRef="add_questions"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="add_questions" targetRef="review_required_gw"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="review_required_gw" targetRef="staff_review">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= reviewRequired = true</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="review_required_gw" targetRef="schedule_window"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="staff_review" targetRef="review_result_gw"/>
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="review_result_gw" targetRef="return_to_teacher">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= approved = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="review_result_gw" targetRef="schedule_window"/>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="return_to_teacher" targetRef="draft_exam"/>
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="schedule_window" targetRef="publish_exam"/>
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="publish_exam" targetRef="end_published"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_lms_exam_authoring">
+    <bpmndi:BPMNPlane id="BPMNPlane_lms_exam_authoring" bpmnElement="lms_exam_authoring">
+      <bpmndi:BPMNShape id="teacher_di" bpmnElement="teacher" isHorizontal="true">
+        <dc:Bounds x="60" y="80" width="14060" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="admin_di" bpmnElement="admin" isHorizontal="true">
+        <dc:Bounds x="60" y="240" width="14060" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="system_di" bpmnElement="system" isHorizontal="true">
+        <dc:Bounds x="60" y="400" width="14060" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start">
+        <dc:Bounds x="180" y="142" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="draft_exam_di" bpmnElement="draft_exam">
+        <dc:Bounds x="13600" y="120" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="add_questions_di" bpmnElement="add_questions">
+        <dc:Bounds x="12500" y="120" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="review_required_gw_di" bpmnElement="review_required_gw">
+        <dc:Bounds x="12720" y="135" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="staff_review_di" bpmnElement="staff_review">
+        <dc:Bounds x="12940" y="280" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="review_result_gw_di" bpmnElement="review_result_gw">
+        <dc:Bounds x="13160" y="295" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="return_to_teacher_di" bpmnElement="return_to_teacher">
+        <dc:Bounds x="13380" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="schedule_window_di" bpmnElement="schedule_window">
+        <dc:Bounds x="13380" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="publish_exam_di" bpmnElement="publish_exam">
+        <dc:Bounds x="13600" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_published_di" bpmnElement="end_published">
+        <dc:Bounds x="13820" y="462" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="216" y="160"/>
+        <di:waypoint x="13600" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="13700" y="160"/>
+        <di:waypoint x="12500" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="12600" y="160"/>
+        <di:waypoint x="12720" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="12770" y="160"/>
+        <di:waypoint x="12940" y="320"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="12770" y="160"/>
+        <di:waypoint x="13380" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="13040" y="320"/>
+        <di:waypoint x="13160" y="320"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="13210" y="320"/>
+        <di:waypoint x="13380" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="13210" y="320"/>
+        <di:waypoint x="13380" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="13480" y="480"/>
+        <di:waypoint x="13600" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="13480" y="480"/>
+        <di:waypoint x="13600" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="13700" y="480"/>
+        <di:waypoint x="13820" y="480"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

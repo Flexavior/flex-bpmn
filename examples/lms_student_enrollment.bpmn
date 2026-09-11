@@ -1,0 +1,236 @@
+<?xml version='1.0' encoding='utf-8'?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" id="Definitions_lms_student_enrollment" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="lms_student_enrollment" name="Student Course Enrollment" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_lms_student_enrollment">
+      <bpmn:lane id="student" name="Student">
+        <bpmn:flowNodeRef>start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>submit_request</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="admin" name="Admin Staff">
+        <bpmn:flowNodeRef>staff_confirm</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="system" name="System">
+        <bpmn:flowNodeRef>check_eligibility</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>eligible_gw</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>notify_rejected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>end_rejected</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>fork_ops</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>reserve_seat</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>create_invoice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>join_ops</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>write_enrollment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>notify_enrolled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>end_enrolled</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="start" name="Start">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="submit_request" name="Student submits enrollment">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+        <zeebe:assignmentDefinition candidateGroups="student"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="check_eligibility" name="Check eligibility">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_student_enrollment.check_eligibility"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="eligible_gw" name="Eligible?" default="Flow_6">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="notify_rejected" name="Notify ineligible student">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_student_enrollment.notify_rejected"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="end_rejected" name="Rejected">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:parallelGateway id="fork_ops" name="Reserve and bill">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="reserve_seat" name="Reserve seat">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_student_enrollment.reserve_seat"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="create_invoice" name="Create invoice">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_student_enrollment.create_invoice"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:parallelGateway id="join_ops" name="Join operations">
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:userTask id="staff_confirm" name="Staff confirm payment and seat">
+      <bpmn:extensionElements>
+        <zeebe:userTask/>
+        <zeebe:assignmentDefinition candidateGroups="admin"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="write_enrollment" name="Write enrollment record">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_student_enrollment.write_enrollment"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="notify_enrolled" name="Notify enrolled student">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="fxv.lms_student_enrollment.notify_enrolled"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_14</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="end_enrolled" name="Enrolled">
+      <bpmn:incoming>Flow_14</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="start" targetRef="submit_request"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="submit_request" targetRef="check_eligibility"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="check_eligibility" targetRef="eligible_gw"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="eligible_gw" targetRef="notify_rejected">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">= eligible = false</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="notify_rejected" targetRef="end_rejected"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="eligible_gw" targetRef="fork_ops"/>
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="fork_ops" targetRef="reserve_seat"/>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="fork_ops" targetRef="create_invoice"/>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="reserve_seat" targetRef="join_ops"/>
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="create_invoice" targetRef="join_ops"/>
+    <bpmn:sequenceFlow id="Flow_11" sourceRef="join_ops" targetRef="staff_confirm"/>
+    <bpmn:sequenceFlow id="Flow_12" sourceRef="staff_confirm" targetRef="write_enrollment"/>
+    <bpmn:sequenceFlow id="Flow_13" sourceRef="write_enrollment" targetRef="notify_enrolled"/>
+    <bpmn:sequenceFlow id="Flow_14" sourceRef="notify_enrolled" targetRef="end_enrolled"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_lms_student_enrollment">
+    <bpmndi:BPMNPlane id="BPMNPlane_lms_student_enrollment" bpmnElement="lms_student_enrollment">
+      <bpmndi:BPMNShape id="student_di" bpmnElement="student" isHorizontal="true">
+        <dc:Bounds x="60" y="80" width="2620" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="admin_di" bpmnElement="admin" isHorizontal="true">
+        <dc:Bounds x="60" y="240" width="2620" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="system_di" bpmnElement="system" isHorizontal="true">
+        <dc:Bounds x="60" y="400" width="2620" height="160"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start">
+        <dc:Bounds x="180" y="142" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="submit_request_di" bpmnElement="submit_request">
+        <dc:Bounds x="400" y="120" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="check_eligibility_di" bpmnElement="check_eligibility">
+        <dc:Bounds x="620" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="eligible_gw_di" bpmnElement="eligible_gw">
+        <dc:Bounds x="840" y="455" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="notify_rejected_di" bpmnElement="notify_rejected">
+        <dc:Bounds x="1060" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_rejected_di" bpmnElement="end_rejected">
+        <dc:Bounds x="1280" y="462" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="fork_ops_di" bpmnElement="fork_ops">
+        <dc:Bounds x="1060" y="455" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="reserve_seat_di" bpmnElement="reserve_seat">
+        <dc:Bounds x="1280" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="create_invoice_di" bpmnElement="create_invoice">
+        <dc:Bounds x="1280" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="join_ops_di" bpmnElement="join_ops">
+        <dc:Bounds x="1500" y="455" width="50" height="50"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="staff_confirm_di" bpmnElement="staff_confirm">
+        <dc:Bounds x="1720" y="280" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="write_enrollment_di" bpmnElement="write_enrollment">
+        <dc:Bounds x="1940" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="notify_enrolled_di" bpmnElement="notify_enrolled">
+        <dc:Bounds x="2160" y="440" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_enrolled_di" bpmnElement="end_enrolled">
+        <dc:Bounds x="2380" y="462" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="216" y="160"/>
+        <di:waypoint x="400" y="160"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="500" y="160"/>
+        <di:waypoint x="620" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="720" y="480"/>
+        <di:waypoint x="840" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="890" y="480"/>
+        <di:waypoint x="1060" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="1160" y="480"/>
+        <di:waypoint x="1280" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="890" y="480"/>
+        <di:waypoint x="1060" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="1110" y="480"/>
+        <di:waypoint x="1280" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="1110" y="480"/>
+        <di:waypoint x="1280" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="1380" y="480"/>
+        <di:waypoint x="1500" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="1380" y="480"/>
+        <di:waypoint x="1500" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="1550" y="480"/>
+        <di:waypoint x="1720" y="320"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12">
+        <di:waypoint x="1820" y="320"/>
+        <di:waypoint x="1940" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13">
+        <di:waypoint x="2040" y="480"/>
+        <di:waypoint x="2160" y="480"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14_di" bpmnElement="Flow_14">
+        <di:waypoint x="2260" y="480"/>
+        <di:waypoint x="2380" y="480"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
